@@ -3,10 +3,13 @@ Random helpers and util.
 """
 
 import asyncio
+from datetime import datetime
+
 
 class Logger:
     def log(self, message, end="\n"):
-        print(message, end=end)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{timestamp} {message}", end=end)
 
 logger = Logger()
 
