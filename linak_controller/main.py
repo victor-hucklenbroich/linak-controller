@@ -31,10 +31,17 @@ def disconnect_callback(client: BleakClient, _=None):
     global desk_for_disconnect
     if not desk_for_disconnect.disconnecting:
         logger.log("Lost connection with {}".format(client.address))
-        asyncio.create_task(connect(desk_for_disconnect.config, desk_for_disconnect))
+        was_watching = desk_for_disconnect.mark_disconnected()
+        asyncio.create_task(
+            connect(
+                desk_for_disconnect.config,
+                desk_for_disconnect,
+                resume_watching=was_watching,
+            )
+        )
 
 
-async def connect(config: Config, desk=None, attempt=0):
+async def connect(config: Config, desk=None, attempt=0, resume_watching=False):
     """Attempt to connect to the desk"""
     try:
         logger.log("Connecting\r", end="")
@@ -52,6 +59,8 @@ async def connect(config: Config, desk=None, attempt=0):
         else:
             await desk.client.connect(timeout=config["connection_timeout"])
             logger.log("Reconnected: {}".format(config["mac_address"]))
+            if resume_watching:
+                await desk.start_watching()
         return desk
     except BleakError as e:
         logger.log("Connecting failed")

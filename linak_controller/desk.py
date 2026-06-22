@@ -104,6 +104,14 @@ class Desk:
         finally:
             self._watching = False
 
+    def mark_disconnected(self) -> bool:
+        """Handle a dropped BLE link. The active notification subscription dies with
+        the old connection, so clear the flag and report whether watching was active
+        so the caller can re-subscribe on the new client after reconnecting."""
+        was_watching = self._watching
+        self._watching = False
+        return was_watching
+
     def _on_notification(self, sender, data: bytearray) -> None:
         """Internal BLE notification handler. Decodes data, updates the cache,
         and fans out to every registered subscriber."""
